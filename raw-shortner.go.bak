@@ -1,0 +1,109 @@
+package rawShortner
+
+import (
+	"crypto/rand"
+	"encoding/json"
+	"fmt"
+	"math/big"
+	"net/http"
+)
+
+var urlMap = map[string]string{}
+var codeMap = map[string]string{}
+
+const baseUrl = "https://gourl.localtensor.dev"
+
+type reqBody struct {
+	Url string `json:"url"`
+}
+
+type resBody struct {
+	LongUrl  string
+	ShortUrl string
+	Key      string
+}
+
+// func handler(w http.ResponseWriter, r *http.Request) {
+// 	w.Write([]byte("this is the reponse for this?"))
+// }
+
+func processIncomingRequests(w http.ResponseWriter, r *http.Request) {
+	// body, err := io.ReadAll(r.Body)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(string(body))
+	// w.WriteHeader(http.StatusAccepted)
+
+	var payload reqBody // or payload := reqBody{}
+	fmt.Printf("this is before decoding %+v\n", payload)
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("this is after decoding %+v\n", payload)
+
+	value, exists := urlMap[payload.Url]
+	if exists {
+		shortUrl := fmt.Sprintf("%v/%v", baseUrl, value)
+		response := resBody{
+			LongUrl:  payload.Url,
+			ShortUrl: shortUrl,
+			Key:      value,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	randomKey := generateUniqueKey(payload.Url)
+	formattedUrl := fmt.Sprintf("%s/%s", baseUrl, randomKey)
+	response := resBody{
+		LongUrl:  payload.Url,
+		ShortUrl: formattedUrl,
+		Key:      randomKey,
+	}
+
+	urlMap[payload.Url] = randomKey
+	fmt.Printf("this is the code map %v\n", codeMap)
+	fmt.Printf("this is the url map %v\n", urlMap)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func handleRedirect() {}
+
+func randomGenerator() string {
+	randLength := 7
+	var v []byte
+	const base62 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for range randLength {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(base62))))
+		if err != nil {
+			panic(err)
+		}
+		v = append(v, base62[n.Int64()])
+	}
+
+	return string(v)
+}
+
+func generateUniqueKey(url string) string {
+	key := randomGenerator()
+	// this can also be achieved via infinite for loops (apparently that's a better approach)
+
+	_, exists := codeMap[key]
+	if !exists {
+		codeMap[key] = url
+		urlMap[url] = key
+		return key
+	}
+	return generateUniqueKey(url)
+}
+
+func rawShortner() {
+	fmt.Println("hello world, the program is running")
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /print", processIncomingRequests)
+	http.ListenAndServe(":3000", mux)
+}

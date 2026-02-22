@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/* =============================================
+   CSS Custom Properties — Neo-Brutalist Palette
+   Warm, relaxed tones with hard graphic edges
+   ============================================= */
+:root {
+  --cream: #FFFDF5;
+  --sand: #F0EAD8;
+  --clay: #D4A574;
+  --rust: #C17A56;
+  --olive: #6B7A4A;
+  --charcoal: #2C2C2C;
+  --black: #111111;
+  --white: #FFFFFF;
+
+  /* Neo-brutalist shadow offset */
+  --shadow-sm: 3px 3px 0px var(--charcoal);
+  --shadow-md: 5px 5px 0px var(--charcoal);
+  --shadow-lg: 8px 8px 0px var(--charcoal);
+
+  /* Border */
+  --border: 2.5px solid var(--charcoal);
+}
+
+/* =============================================
+   Base
+   ============================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: 'DM Mono', monospace;
+  background-color: var(--cream);
+  color: var(--charcoal);
+  min-height: 100vh;
+
+  /* Subtle noise texture for warmth */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =============================================
+   Typography
+   ============================================= */
+.font-display {
+  font-family: 'Syne', sans-serif;
+}
+
+/* =============================================
+   Neo-Brutalist Utilities
+   ============================================= */
+.neo-border {
+  border: var(--border);
+}
+
+.neo-shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.neo-shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.neo-shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Card */
+.neo-card {
+  border: var(--border);
+  box-shadow: var(--shadow-lg);
+  background-color: var(--white);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.neo-card:hover {
+  box-shadow: 10px 10px 0px var(--charcoal);
+  transform: translate(-2px, -2px);
+}
+
+/* Button */
+.neo-btn {
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+  position: relative;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.neo-btn:hover {
+  box-shadow: 5px 5px 0px var(--charcoal);
+  transform: translate(-2px, -2px);
+}
+
+.neo-btn:active {
+  box-shadow: 1px 1px 0px var(--charcoal);
+  transform: translate(2px, 2px);
+}
+
+/* Input */
+.neo-input {
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  font-family: 'DM Mono', monospace;
+  background-color: var(--white);
+  outline: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.neo-input:focus {
+  box-shadow: 5px 5px 0px var(--charcoal);
+  transform: translate(-2px, -2px);
+}
+
+/* Tags / badges */
+.neo-tag {
+  border: 2px solid var(--charcoal);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  display: inline-block;
+}
+
+/* Result container */
+.result-enter {
+  animation: resultSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes resultSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error shake */
+.error-shake {
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Page load animation */
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Decorative stripes - neo brut accent */
+.stripe-accent {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--clay) 0px,
+    var(--clay) 4px,
+    transparent 4px,
+    transparent 14px
+  );
+}
+
+/* Copy button flash */
+.copy-flash {
+  animation: copyFlash 0.4s ease;
+}
+
+@keyframes copyFlash {
+  0%   { background-color: var(--olive); color: var(--white); }
+  100% { background-color: transparent; }
+}
