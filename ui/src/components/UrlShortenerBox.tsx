@@ -1,34 +1,43 @@
 import { useState, useRef, useCallback } from 'react'
-import { shortenUrl, isValidUrl } from '../utils/shortener'
-
-interface ShortenResult {
-  original: string
-  short: string
-}
+import { isValidUrl, shortenUrl } from '../services/urlService'
+import type { ShortenResponse } from '../types/api'
 
 const UrlShortenerBox = () => {
   const [inputUrl, setInputUrl] = useState('')
-  const [result, setResult] = useState<ShortenResult | null>(null)
+  const [result, setResult] = useState<ShortenResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isShaking, setIsShaking] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleShorten = useCallback(() => {
+  const handleShorten = useCallback(async () => {
     const trimmed = inputUrl.trim()
+
     if (!trimmed) {
       setError('Drop a URL here first.')
       triggerShake()
       return
     }
-    try {
-      const short = shortenUrl(trimmed)
-      setResult({ original: trimmed, short })
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
-      setResult(null)
+
+    if (!isValidUrl(trimmed)) {
+      setError('Please enter a valid URL starting with http:// or https://')
       triggerShake()
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setResult(null)
+
+    try {
+      const data = await shortenUrl({ url: trimmed })
+      setResult(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Is the backend running?')
+      triggerShake()
+    } finally {
+      setLoading(false)
     }
   }, [inputUrl])
 
@@ -40,12 +49,12 @@ const UrlShortenerBox = () => {
   const handleCopy = useCallback(async () => {
     if (!result) return
     try {
-      await navigator.clipboard.writeText(result.short)
+      await navigator.clipboard.writeText(result.ShortUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       const ta = document.createElement('textarea')
-      ta.value = result.short
+      ta.value = result.ShortUrl
       document.body.appendChild(ta)
       ta.select()
       document.execCommand('copy')
@@ -70,7 +79,6 @@ const UrlShortenerBox = () => {
   const urlIsValid = inputUrl.trim() !== '' && isValidUrl(inputUrl.trim())
 
   return (
-    /* Constrain the card width and keep it floating with clear side space */
     <div className="fade-in w-full" style={{ maxWidth: '680px' }}>
 
       {/* Main card */}
@@ -102,10 +110,8 @@ const UrlShortenerBox = () => {
           Long URL
         </label>
 
-        {/* Input + Button row — always horizontal */}
-        <div
-          className={`flex items-stretch gap-4 ${isShaking ? 'error-shake' : ''}`}
-        >
+        {/* Input + Button row */}
+        <div className={`flex items-stretch gap-4 ${isShaking ? 'error-shake' : ''}`}>
           <input
             id="url-input"
             ref={inputRef}
@@ -117,11 +123,13 @@ const UrlShortenerBox = () => {
               if (error) setError(null)
             }}
             onKeyDown={handleKeyDown}
+            disabled={loading}
             className="neo-input flex-1 min-w-0"
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: '0.85rem',
               padding: '14px 18px',
+              opacity: loading ? 0.6 : 1,
             }}
             autoComplete="off"
             spellCheck={false}
@@ -130,27 +138,50 @@ const UrlShortenerBox = () => {
           />
           <button
             onClick={handleShorten}
+            disabled={loading}
             className="neo-btn flex-shrink-0"
             style={{
-              backgroundColor: urlIsValid ? 'var(--charcoal)' : 'var(--clay)',
-              color: 'var(--cream)',
+              backgroundColor: loading
+                ? 'var(--sand)'
+                : urlIsValid
+                ? 'var(--charcoal)'
+                : 'var(--clay)',
+              color: loading ? 'var(--charcoal)' : 'var(--cream)',
               fontFamily: "'Syne', sans-serif",
               fontSize: '0.8rem',
               padding: '14px 28px',
               letterSpacing: '0.1em',
               whiteSpace: 'nowrap',
+              cursor: loading ? 'not-allowed' : 'pointer',
             }}
-            aria-label="Shorten URL"
+            aria-label={loading ? 'Shortening...' : 'Shorten URL'}
           >
-            {/* Scissors icon */}
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="6" cy="6" r="3"/>
-              <circle cx="6" cy="18" r="3"/>
-              <line x1="20" y1="4" x2="8.12" y2="15.88"/>
-              <line x1="14.47" y1="14.48" x2="20" y2="20"/>
-              <line x1="8.12" y1="8.12" x2="12" y2="12"/>
-            </svg>
-            SNIP IT
+            {loading ? (
+              /* Spinner */
+              <>
+                <svg
+                  width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                  aria-hidden="true"
+                  style={{ animation: 'spin 0.8s linear infinite' }}
+                >
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+                LOADING
+              </>
+            ) : (
+              /* Scissors icon */
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="6" cy="6" r="3"/>
+                  <circle cx="6" cy="18" r="3"/>
+                  <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+                  <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+                  <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+                </svg>
+                SNIP IT
+              </>
+            )}
           </button>
         </div>
 
@@ -170,7 +201,7 @@ const UrlShortenerBox = () => {
         {result && (
           <div
             className="result-enter neo-border"
-            style={{ backgroundColor: 'var(--sand)', marginTop: '32px', padding: '28px 32px' }}
+            style={{ backgroundColor: 'var(--sand)', marginTop: '24px', padding: '24px 28px' }}
           >
             <p
               className="text-xs font-bold tracking-widest uppercase mb-4"
@@ -188,7 +219,7 @@ const UrlShortenerBox = () => {
                   color: 'var(--charcoal)',
                 }}
               >
-                {result.short}
+                {result.ShortUrl}
               </span>
 
               <button
@@ -224,12 +255,21 @@ const UrlShortenerBox = () => {
               </button>
             </div>
 
+            {/* Original URL */}
             <p
               className="mt-3 text-xs truncate"
               style={{ fontFamily: "'DM Mono', monospace", opacity: 0.5 }}
-              title={result.original}
+              title={result.LongUrl}
             >
-              from: {result.original}
+              from: {result.LongUrl}
+            </p>
+
+            {/* Key badge */}
+            <p
+              className="mt-2 text-xs"
+              style={{ fontFamily: "'DM Mono', monospace", opacity: 0.5 }}
+            >
+              key: <span style={{ fontWeight: 600 }}>{result.Key}</span>
             </p>
 
             <button
@@ -247,7 +287,6 @@ const UrlShortenerBox = () => {
           </div>
         )}
       </div>
-
     </div>
   )
 }

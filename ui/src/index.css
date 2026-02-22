@@ -203,3 +203,18 @@ body {
   0%   { background-color: var(--olive); color: var(--white); }
   100% { background-color: transparent; }
 }
+
+/* Spinner for loading state */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Disabled button — no hover/active transform */
+.neo-btn:disabled {
+  cursor: not-allowed;
+}
+.neo-btn:disabled:hover {
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}

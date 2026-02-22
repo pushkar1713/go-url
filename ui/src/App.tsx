@@ -27,7 +27,9 @@ function App() {
           </div>
           <nav aria-label="Site navigation">
             <a
-              href="#"
+              href="https://github.com/pushkar1713/go-url"
+              target="_blank"
+              rel="noopener noreferrer"
               className="neo-btn text-xs"
               style={{ backgroundColor: 'var(--sand)', color: 'var(--charcoal)', textDecoration: 'none', padding: '6px 14px' }}
               aria-label="View GitHub repository"
@@ -99,9 +101,15 @@ function App() {
           <p className="text-xs opacity-60" style={{ fontFamily: "'DM Mono', monospace" }}>
             © 2026 SNIP — made with ✂ &amp; ☕
           </p>
-          <p className="text-xs opacity-60" style={{ fontFamily: "'DM Mono', monospace" }}>
-            no data stored · open source
-          </p>
+          <a
+            href="https://github.com/pushkar1713/go-url"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+            style={{ fontFamily: "'DM Mono', monospace", color: 'var(--charcoal)' }}
+          >
+            open source ↗
+          </a>
         </div>
       </footer>
 

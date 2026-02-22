@@ -1,11 +1,15 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
 
-func router() *http.ServeMux {
+	"github.com/rs/cors"
+)
+
+func router() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /shorten", processIncomingRequests)
 	mux.HandleFunc("GET /{key}", handleRedirect)
 
-	return mux
+	return cors.Default().Handler(mux)
 }
