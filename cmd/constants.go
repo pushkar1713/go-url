@@ -1,3 +1,3 @@
 package main
 
-const baseUrl = "https://gourl.localtensor.dev"
+const baseUrl = "https://snip-api.localtensor.dev"
